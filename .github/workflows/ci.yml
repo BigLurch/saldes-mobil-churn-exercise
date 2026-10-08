@@ -1,19 +1,26 @@
+
 name: CI
 
-on: push
+on:
+  push:
+  pull_request:
 
 jobs:
   allt:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v7
+      - name: Hämta repository
+        uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.13"
+      - name: Installera uv
+        uses: astral-sh/setup-uv@v9
 
-      - run: pip install -e .
+      - name: Installera Python och beroenden
+        run: uv sync --python 3.13 --extra dev
 
-      - run: pytest
+      - name: Kör tester
+        run: uv run --no-sync pytest
 
-      - run: python -m churn.model
+      - name: Träna modellen
+        run: uv run --no-sync python -m churn.model
