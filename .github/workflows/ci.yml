@@ -26,7 +26,7 @@ jobs:
           cache-dependency-glob: |
             pyproject.toml
             uv.locke
-          cache-suffix: py311-training
+          cache-suffix: py${{ matrix.python-version }}-tests
 
       - name: Installera Python och beroenden
         run: uv sync --locked --python ${{ matrix.python-version }} --extra dev
