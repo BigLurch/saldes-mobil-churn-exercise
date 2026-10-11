@@ -21,6 +21,12 @@ jobs:
 
       - name: Installera uv
         uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.locke
+          cache-suffix: py311-training
 
       - name: Installera Python och beroenden
         run: uv sync --locked --python ${{ matrix.python-version }} --extra dev
