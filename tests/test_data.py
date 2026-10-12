@@ -10,3 +10,16 @@ def test_forvantade_kolumner_finns():
 
 def test_malvariabeln_ar_binar():
     assert set(las_data()[MAL].unique()) <= {0, 1}
+
+def test_kund_id_ar_unikt():
+    df = las_data()
+
+    assert df["kund_id"].is_unique, "Kund-ID innehåller dubbletter"
+
+
+def test_alder_ar_rimlig():
+    df = las_data()
+
+    assert df["alder"].between(18, 100).all(), (
+        "Det finns kunder med ålder utanför intervallet 18–100"
+    )
