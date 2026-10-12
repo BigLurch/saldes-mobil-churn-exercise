@@ -52,3 +52,12 @@ jobs:
 
       - name: Träna modellen
         run: uv run --no-sync python -m churn.model
+
+      
+      - name: Ladda upp modellartefakt
+        uses: actions/upload-artifact@v7
+        with:
+          name: modell-${{ github.sha }}
+          path: outputs/
+          if-no-files-found: error
+          retention-days: 7
