@@ -44,6 +44,8 @@ jobs:
 
   tester:
     name: Tester - Python ${{ matrix.python-version }}
+    needs: andringar
+    if: ${{ needs.andringar.outputs.ci == 'true' }}
     runs-on: ubuntu-latest
 
     strategy:
@@ -160,3 +162,52 @@ jobs:
           with open(summary_file, "a", encoding="utf-8") as f:
               f.write(summary)
           PY
+
+  slutkontroll:
+    name: Slutkontroll
+    runs-on: ubuntu-latest
+    needs:
+      - andringar
+      - tester
+      - traning
+      - utvardera
+    if: ${{ always() }}
+
+    steps:
+      - name: Kontrollera CI-resultat
+        env:
+          CI_REQUIRED: ${{ needs.andringar.outputs.ci }}
+          FILTER_RESULT: ${{ needs.andringar.result }}
+          TEST_RESULT: ${{ needs.tester.result }}
+          TRAIN_RESULT: ${{ needs.traning.result }}
+          EVAL_RESULT: ${{ needs.utvardera.result }}
+        run: |
+          echo "Filkontroll: $FILTER_RESULT"
+          echo "CI krävs: $CI_REQUIRED"
+          echo "Tester: $TEST_RESULT"
+          echo "Träning: $TRAIN_RESULT"
+          echo "Utvärdering: $EVAL_RESULT"
+
+          if [[ "$FILTER_RESULT" != "success" ]]; then
+            echo "::error::Filkontrollen misslyckades."
+            exit 1
+          fi
+
+          if [[ "$CI_REQUIRED" == "false" ]]; then
+            echo "Endast irrelevanta filer ändrades. CI godkänd."
+            exit 0
+          fi
+
+          if [[ "$CI_REQUIRED" != "true" ]]; then
+            echo "::error::Okänt resultat från filkontrollen."
+            exit 1
+          fi
+
+          if [[ "$TEST_RESULT" != "success" ||
+                "$TRAIN_RESULT" != "success" ||
+                "$EVAL_RESULT" != "success" ]]; then
+            echo "::error::En eller flera obligatoriska CI-kontroller misslyckades."
+            exit 1
+          fi
+
+          echo "Alla obligatoriska CI-kontroller godkända."
