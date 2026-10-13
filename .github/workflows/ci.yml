@@ -4,24 +4,10 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "kundbas.csv"
-      - "pyproject.toml"
-      - "uv.lock"
-      - ".github/workflows/**"
 
   pull_request:
     branches:
       - main
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "kundbas.csv"
-      - "pyproject.toml"
-      - "uv.lock"
-      - ".github/workflows/**"
 
 jobs:
   tester:
