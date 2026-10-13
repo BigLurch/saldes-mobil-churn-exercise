@@ -122,7 +122,7 @@ jobs:
 
       - name: Kontrollera modellkvalitet
         env:
-          MIN_ROC_AUC: "0.70"
+          MIN_ROC_AUC: "0.99"
         run: uv run --no-sync python -m churn.evaluate
       
       - name: Visa modellresultat i Summary
