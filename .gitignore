@@ -24,3 +24,8 @@ htmlcov/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Genererade modellfiler
+models/
+*.joblib
+*.pkl
