@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+  pull_request:
+    branches:
+      - main
+
 jobs:
   tester:
     name: Tester - Python ${{ matrix.python-version }}
