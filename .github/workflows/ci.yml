@@ -10,6 +10,38 @@ on:
       - main
 
 jobs:
+  andringar:
+    name: Kontrollera ändrade filer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
+    outputs:
+      ci: ${{ steps.filter.outputs.ci }}
+
+    steps:
+      - name: Hämta repository
+        uses: actions/checkout@v7
+
+      - name: Identifiera relevanta ändringar
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            ci:
+              - 'src/**'
+              - 'tests/**'
+              - 'kundbas.csv'
+              - 'pyproject.toml'
+              - 'uv.lock'
+              - '.github/workflows/**'
+
+      - name: Visa resultat
+        env:
+          CI_REQUIRED: ${{ steps.filter.outputs.ci }}
+        run: echo "Kräver fullständig CI - $CI_REQUIRED"
+
   tester:
     name: Tester - Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
