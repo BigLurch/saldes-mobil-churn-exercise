@@ -86,3 +86,41 @@ jobs:
         env:
           MIN_ROC_AUC: "0.70"
         run: uv run --no-sync python -m churn.evaluate
+      
+      - name: Visa modellresultat i Summary
+        if: always()
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          metrics_file = Path("outputs/matvarden.json")
+          summary_file = os.environ["GITHUB_STEP_SUMMARY"]
+
+          if not metrics_file.exists():
+              summary = "## Model evaluation\n\nMetrics file missing.\n"
+          else:
+              metrics = json.loads(metrics_file.read_text(encoding="utf-8"))
+              auc = metrics["roc_auc"]
+              accuracy = metrics["accuracy"]
+              threshold = 0.70
+              status = "PASS" if auc >= threshold else "FAIL"
+
+              summary = f"""## Model evaluation
+
+          | Metric | Value |
+          |---|---|
+          | ROC AUC | {auc:.4f} |
+          | Accuracy | {accuracy:.4f} |
+          | Minimum ROC AUC | {threshold:.2f} |
+          | Quality gate | {status} |
+          | Commit SHA | `{os.environ["COMMIT_SHA"]}` |
+          | Data SHA256 | `{metrics.get("data_sha256", "N/A")}` |
+          """
+
+          with open(summary_file, "a", encoding="utf-8") as f:
+              f.write(summary)
+          PY
