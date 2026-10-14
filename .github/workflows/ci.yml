@@ -68,17 +68,12 @@ jobs:
       - name: Hämta repository
         uses: actions/checkout@v7
 
-      - name: Installera uv
-        uses: astral-sh/setup-uv@v9.0.0
-        with:
-          enable-cache: true
-          cache-dependency-glob: |
-            pyproject.toml
-            uv.locke
-          cache-suffix: py${{ matrix.python-version }}-tests
-
       - name: Installera Python och beroenden
-        run: uv sync --locked --python ${{ matrix.python-version }} --extra dev
+        uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: ${{ matrix.python-version }}
+          dev: "true"
+          cache-suffix: py${{ matrix.python-version }}-tests
 
       - name: Kör tester
         run: uv run --no-sync pytest
@@ -93,11 +88,11 @@ jobs:
       - name: Hämta repository
         uses: actions/checkout@v7
 
-      - name: Installera uv
-        uses: astral-sh/setup-uv@v9.0.0
-
       - name: Installera Python och beroenden
-        run: uv sync --locked --python 3.11
+        uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: "3.11"
+          cache-suffix: py311-training
 
       - name: Träna modellen
         run: uv run --no-sync python -m churn.model
@@ -121,11 +116,11 @@ jobs:
       - name: Hämta repository
         uses: actions/checkout@v7
 
-      - name: Installera uv
-        uses: astral-sh/setup-uv@v9.0.0
-
       - name: Installera Python och beroenden
-        run: uv sync --locked --python 3.11
+        uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: "3.11"
+          cache-suffix: py311-evaluation
 
       - name: Ladda ner modellartefakt
         uses: actions/download-artifact@v8.0.1
@@ -233,11 +228,11 @@ jobs:
       - name: Hämta repository
         uses: actions/checkout@v7
 
-      - name: Installera uv
-        uses: astral-sh/setup-uv@v9.0.0
-
       - name: Installera Python och beroenden
-        run: uv sync --locked --python 3.11
+        uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: "3.11"
+          cache-suffix: py311-ringlista
 
       - name: Ladda ner godkänd modell
         uses: actions/download-artifact@v8.0.1
