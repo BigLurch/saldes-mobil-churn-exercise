@@ -8,6 +8,11 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+    - cron: '0 6 * * 1'
+      timezone: 'Europe/Stockholm'
+
+  workflow_dispatch:
 
 # Verify that newer workflow runs cancel outdated runs.
 concurrency:
@@ -23,13 +28,14 @@ jobs:
       pull-requests: read
 
     outputs:
-      ci: ${{ steps.filter.outputs.ci }}
+      ci: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || steps.filter.outputs.ci == 'true' }}
 
     steps:
       - name: Hämta repository
         uses: actions/checkout@v7
 
       - name: Identifiera relevanta ändringar
+        if: ${{ github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
         id: filter
         uses: dorny/paths-filter@v4
         with:
