@@ -8,6 +8,11 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+    - cron: '0 6 * * 1'
+      timezone: 'Europe/Stockholm'
+
+  workflow_dispatch:
 
 # Verify that newer workflow runs cancel outdated runs.
 concurrency:
@@ -23,13 +28,14 @@ jobs:
       pull-requests: read
 
     outputs:
-      ci: ${{ steps.filter.outputs.ci }}
+      ci: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || steps.filter.outputs.ci == 'true' }}
 
     steps:
       - name: Hämta repository
         uses: actions/checkout@v7
 
       - name: Identifiera relevanta ändringar
+        if: ${{ github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
         id: filter
         uses: dorny/paths-filter@v4
         with:
@@ -216,3 +222,38 @@ jobs:
           fi
 
           echo "Alla obligatoriska CI-kontroller godkända."
+
+  ringlista:
+    name: Skapa ringlista
+    runs-on: ubuntu-latest
+    needs: utvardera
+    if: ${{ github.ref == 'refs/heads/main' && needs.utvardera.result == 'success' }}
+
+    steps:
+      - name: Hämta repository
+        uses: actions/checkout@v7
+
+      - name: Installera uv
+        uses: astral-sh/setup-uv@v9.0.0
+
+      - name: Installera Python och beroenden
+        run: uv sync --locked --python 3.11
+
+      - name: Ladda ner godkänd modell
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: modell-${{ github.sha }}
+          path: outputs/
+
+      - name: Skapa ringlista
+        env:
+          ANTAL: "100"
+        run: uv run --no-sync python -m churn.score
+
+      - name: Ladda upp ringlista
+        uses: actions/upload-artifact@v7
+        with:
+          name: ringlista-${{ github.sha }}
+          path: outputs/ringlista.csv
+          if-no-files-found: error
+          retention-days: 7
